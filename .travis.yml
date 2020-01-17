@@ -1,0 +1,23 @@
+sudo: required
+services: 
+  - docker
+before_install:
+  - docker build -t neeraj013/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true neeraj013/react-test npm test
+
+after_success:
+  - docker build -t neeraj013/multi-client ./client
+  - docker build -t neeraj013/multi-nginx ./nginx
+  - docker build -t neeraj013/multi-server ./server
+  - docker build -t neeraj013/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push neeraj013/multi-client
+  - docker push neeraj013/multi-nginx
+  - docker push neeraj013/multi-server
+  - docker push neeraj013/multi-worker
+
+
